@@ -17,6 +17,7 @@ import {
 const Header = () => {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHostMode, setIsHostMode] = useState(false); // 호스트/게스트 모드 토글 상태
   const menuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,10 +49,28 @@ const Header = () => {
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
+  // 💡 핵심: 호스팅 하기 클릭 핸들러
+  const handleHostClick = () => {
+    if (!user) {
+      // 1. 비로그인 상태: 로그인 페이지로 이동
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/login');
+    } else {
+      // 2. 로그인 상태: "게스트모드로 전환" <-> "호스트모드로 전환" 토글
+      setIsHostMode((prev) => !prev);
+      if (!isHostMode) {
+        navigate('/host'); // 호스트 페이지로 이동
+      } else {
+        navigate('/'); // 메인(게스트) 페이지로 이동
+      }
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setIsHostMode(false);
     setIsMenuOpen(false);
     alert('로그아웃 되었습니다.');
     navigate('/');
@@ -71,23 +90,22 @@ const Header = () => {
         </nav>
 
         <NavWrapper>
-          {/* 로그인 상태에 따라 상단 텍스트 및 아바타 변경 */}
+          {/* 💡 로그인 여부 및 모드 상태에 따른 버튼 문구 변경 */}
+          <HostButton onClick={handleHostClick}>
+            {user ? (isHostMode ? '게스트모드로 전환' : '호스트 모드로 전환') : '호스팅 하기'}
+          </HostButton>
+
+          {/* 로그인 상태에 따른 프로필/아바타 처리 */}
           {user ? (
-            <>
-              <HostLink to="/host">호스트 모드로 전환</HostLink>
-              <AvatarCircle title={user.name}>
-                {user.name ? user.name.slice(0, 2) : '회원'}
-              </AvatarCircle>
-            </>
+            <AvatarCircle title={user.name}>
+              {user.name ? user.name.slice(0, 2) : '회원'}
+            </AvatarCircle>
           ) : (
-            <>
-              <HostLink to="/host">호스팅 하기</HostLink>
-              <IconButton>
-                <Link to="/login" title="로그인">
-                  <FaRegUserCircle />
-                </Link>
-              </IconButton>
-            </>
+            <IconButton>
+              <Link to="/login" title="로그인">
+                <FaRegUserCircle />
+              </Link>
+            </IconButton>
           )}
 
           {/* 햄버거 버튼 & 드롭다운 메뉴 */}
@@ -99,9 +117,7 @@ const Header = () => {
             {isMenuOpen && (
               <DropdownMenu>
                 {user ? (
-                  /* ========================================================
-                     1. 로그인 성공 시 노출되는 메뉴 목록 (첨부 이미지 오른쪽)
-                     ======================================================== */
+                  /* 로그인 시 드롭다운 메뉴 */
                   <>
                     <MenuItem onClick={() => setIsMenuOpen(false)} className="bold">
                       <FiHeart className="icon" /> 위시리스트
@@ -154,9 +170,7 @@ const Header = () => {
                     </MenuItem>
                   </>
                 ) : (
-                  /* ========================================================
-                     2. 비로그인 상태 시 노출되는 메뉴 목록
-                     ======================================================== */
+                  /* 비로그인 시 드롭다운 메뉴 */
                   <>
                     <MenuItem onClick={() => setIsMenuOpen(false)}>
                       <FiGlobe className="icon" /> 언어 및 통화
@@ -227,13 +241,16 @@ const NavWrapper = styled.div`
   gap: 8px;
 `;
 
-const HostLink = styled(Link)`
+/* 호스팅/모드 전환 버튼 스타일 (button태그로 변경) */
+const HostButton = styled.button`
   padding: 10px 14px;
   font-size: 14px;
   font-weight: 600;
   color: #222222;
-  text-decoration: none;
+  background: transparent;
+  border: none;
   border-radius: 22px;
+  cursor: pointer;
 
   &:hover {
     background-color: #f7f7f7;
