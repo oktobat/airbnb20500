@@ -13,3 +13,18 @@ jsonwebtoken : 로그인 상태를 증명하는 전자 암호화 토큰(유전�
        사용자가 로그인에 성공하면 서버가 암호화된 토큰(JWT)을 발급해 줌. 클라이언트는 이 토큰을 저장해 두었다가, 이후 마이페이지 조회 등의 요청을 할 때 헤더에 실어 보내어 "나 로그인한 사람 맞아"라고 인증함.
 nodemon : 서버 코드를 수정하고 저장할 때마다 서버를 자동으로 껐다 켜주는 개발 전용 도구
        원래 Node.js는 코드를 수정하면 Ctrl + C로 서버를 끄고 node index.js로 다시 켜야 함. nodemon을 쓰면 파일 저장(Ctrl + S) 즉시 수정 사항이 적용되므로 개발 속도가 훨씬 빨라짐
+
+
+
+CREATE TABLE accommodations (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_email VARCHAR(40) NOT NULL,       -- 작성자(호스트) 이메일 (members.email과 타입/길이 일치)
+  category VARCHAR(50) NOT NULL,         -- 숙소 분류 (아파트, 주택 등)
+  room_type VARCHAR(50) NOT NULL,        -- 숙소 유형 (공간 전체, 방 등)
+  guests INT NOT NULL DEFAULT 1,         -- 인원 수
+  bedrooms INT NOT NULL DEFAULT 1,       -- 침실 수
+  beds INT NOT NULL DEFAULT 1,           -- 침대 수
+  image_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_email) REFERENCES members(email) ON DELETE CASCADE ON UPDATE CASCADE
+);
